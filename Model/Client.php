@@ -34,9 +34,13 @@ class Client extends \PayEx\Api\Client\Client
         $this->config = $config;
         $this->logger = $logger;
 
+        if (!$this->config->isActive()) {
+            return;
+        }
+
         try {
             parent::__construct($data);
-        } catch (RequestException $e) {
+        } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
             throw new ClientException($e);
         }
@@ -56,8 +60,10 @@ class Client extends \PayEx\Api\Client\Client
                 $this->logger->error($message);
             }
             throw new ClientException(
-                sprintf('Invalid values for required fields: %s',
-                implode(', ', array_keys($errorMessages)))
+                sprintf(
+                    'Invalid values for required fields: %s',
+                    implode(', ', array_keys($errorMessages))
+                )
             );
         }
 
@@ -83,6 +89,10 @@ class Client extends \PayEx\Api\Client\Client
      */
     public function request($requestMethod, $requestEndpoint, $requestParams = [])
     {
+        if (!$this->config->isActive()) {
+            return $this;
+        }
+
         try {
             parent::request($requestMethod, $requestEndpoint, $requestParams);
         } catch (\Exception $e) {
